@@ -1,0 +1,23 @@
+{
+    "name": "talkeer-chat",
+    "version": "1.0.0",
+    "description": "Takeer Chat App",
+    "dependencies": {
+        "async": "^2.6.0",
+        "bluebird": "^3.5.1",
+        "body-parser": "^1.15.2",
+        "bootstrap-vertical-tabs": "^1.2.2",
+        "express": "^4.10.2",
+        "lodash": "^4.17.4",
+        "mongoose": "^4.11.7",
+        "redis": "^2.8.0",
+        "socket.io": "^1.7.1"
+    },
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "engines": {
+        "node": "4.1.1"
+    }
+}

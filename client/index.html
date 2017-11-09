@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.6.0/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script>
+    var socket = io.connect("http://localhost:8080");
+
+    fid = '0cMVn0fWohzM4WxTomd';
+    fname = "pony";
+    tid = "XktmCFsJhXzs8PuoIL2";
+    tname = "talkeer-service";
+
+    //登陆
+    socket.emit('join', { uid: '0cMVn0fWohzM4WxTomd' });
+
+    //发消息
+    socket.on('message-count', function(data) {
+        console.log(data);
+        addMessage(data);
+        // Respond with a message including this clients' id sent from the server
+    });
+    socket.on('time', function(data) {
+        addMessage(data.time);
+    });
+    socket.on('error', console.error.bind(console));
+    //socket.on('message-count', console.log.bind(console));
+
+    function addMessage(message) {
+        var text = document.createTextNode(message + " new messages...");
+        var el = document.createElement('li');
+        var messages = document.getElementById('messages');
+
+        el.appendChild(text);
+        messages.appendChild(el);
+
+
+    }
+
+
+    function addMessage() {
+
+        var json = JSON.stringify({
+            fid: fid,
+            fname: fname,
+            tid: tid,
+            tname: tname,
+            msg: $('#msg').val()
+        });
+
+        //通过socket发送消息
+        socket.emit('message', json);
+
+        $.ajax({
+            url: 'http://localhost:8080/send_message.json',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                'fid': fid,
+                'fname': fname,
+                'tid': tid,
+                'tname': tname,
+                'msg': $('#msg').val()
+            },
+            success: function(response) {
+                if (response.status == 'OK') {
+
+                    $('#msg').html('').focus();
+
+                }
+            }
+        });
+
+    }
+    </script>
+</head>
+
+<body>
+    <p> ==Talk with Talkeer Admin Demo(Credential：Pony)== </p>
+    <ul id='messages'></ul>
+    <p>Chat With Talkeer Service:
+        <input type="text" name="message" id="msg" />
+    </p>
+    <input type='button' id='btn' value="提交" onclick='addMessage()'>
+    </form>
+</body>
+
+</html>
