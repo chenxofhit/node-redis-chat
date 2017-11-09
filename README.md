@@ -7,8 +7,6 @@ This repository contains code for a chat application built using the following w
 - [Express.js](http://expressjs.com/)
 - [Socket.IO](http://socket.io/)
 
-The original blog post can be found at the following link: [Link_Blog_Here](http://google.com)
-
 The Installation process assumes that you already have the above technologies installed on your machine.
 
 ## Install
