@@ -28,26 +28,6 @@ $(function() {
         }
     };
 
-
-    // var searchConversationFilter = {
-    //     options: {
-    //         valueNames: ['nickname']
-    //     },
-    //     init: function() {
-    //         var userList = new List('conversation-list', this.options);
-    //         var noItems = $('<li id="no-items-found">No items found</li>');
-
-    //         userList.on('updated', function(list) {
-    //             if (list.matchingItems.length === 0) {
-    //                 $(list.list).append(noItems);
-    //             } else {
-    //                 noItems.detach();
-    //             }
-    //         });
-    //     }
-    // };
-
-
     var chat = {
 
 
@@ -161,9 +141,6 @@ $(function() {
             var s = conversationid.split("_");
             return s[0] == fid ? s[1] : s[0];
         },
-
-
-
 
         bindChat: function() {
 
@@ -297,7 +274,6 @@ $(function() {
                 },
                 success: function(response) {
                     console.log(response);
-
                     var people_count = response.tids.length;
                     var html = '';
                     for (var x = 0; x < people_count; x++) {
@@ -316,9 +292,7 @@ $(function() {
                     $(".people-list .list").empty().append(html);
 
                     searchFilter.init();
-
                     chat.bindChat();
-
                 }
 
             })

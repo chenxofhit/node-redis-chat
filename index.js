@@ -45,6 +45,7 @@ var port = process.env.PORT || 8080;
 // Start the Server
 http.listen(port, function() {
     console.log('Server Started. Listening on *:' + port);
+    console.log('Init Members...' + initMembers());
 });
 
 // Store people in chatroom
@@ -83,6 +84,15 @@ app.post('/join.json', function(req, res) {
     }
 });
 
+function initMembers() {
+    myMember.find({}, function(err, members) {
+        console.log(members.length);
+        for (var i = 0; i < members.length; i++) {
+            client.set(members[i]._id + ":m", JSON.stringify(members[i]));
+        }
+    })
+}
+
 function getConversationId(fid, tid) {
     var conversationid = fid + "_" + tid;
     if (tid > fid) {
@@ -116,7 +126,7 @@ app.post('/send_message.json', function(req, res) {
     var timestamp = Date.now();
 
     var conversationId = getConversationId(fid, tid);
-    var ctid = conversationId + "-" + tid + "_unread";
+    var ctid = conversationId + "-" + tid + ":unread";
 
     //设置未读消息数目
     client.get(ctid, function(err, data) {
@@ -134,8 +144,8 @@ app.post('/send_message.json', function(req, res) {
     });
 
     //设置活动会话集
-    client.zadd(fid + "_active", timestamp, conversationId);
-    client.zadd(tid + "_active", timestamp, conversationId);
+    client.zadd(fid + ":active", timestamp, conversationId);
+    client.zadd(tid + ":active", timestamp, conversationId);
 
     var redisMsg = JSON.stringify({
         'fid': fid,
@@ -163,7 +173,7 @@ app.post('/send_message.json', function(req, res) {
 // API - 获取所有对话(包括其未读数)
 app.get('/get_all_conversations.json', function(req, res) {
     var fid = req.query.fid;
-    var activeId = fid + "_active";
+    var activeId = fid + ":active";
 
     client.ZREVRANGE(activeId, 0, -1, 'WITHSCORES', function(err, actives) {
         if (err) throw err;
@@ -171,21 +181,27 @@ app.get('/get_all_conversations.json', function(req, res) {
         tnames = [];
         t = [];
         unread = [];
+
+        if (!actives.length) {
+            res.send({
+                status: 'OK',
+                tids: tids,
+                tnames: tnames,
+                t: t,
+                unread: unread
+            });
+        }
+
         activesArr = _.chunk(actives, 2);
 
         var inserted = 0;
-
         for (var i = 0; i < activesArr.length; i++) {
-
-
-
             (function(j) {
-
                 console.log("active " + i + " ->>>" + activesArr[i] + ", conversationid = " + conversationid + ", tid = " + tid);
                 var conversationid = activesArr[j][0];
                 var tid = getAnotherId(conversationid, fid);
 
-                client.get(tid, function(err, data) {
+                client.get(tid + ":m", function(err, data) {
                     if (data !== null) {
 
                         console.log("id conversations :" + data);
@@ -194,7 +210,7 @@ app.get('/get_all_conversations.json', function(req, res) {
                         var tname = json["nickname"];
 
 
-                        var ctid = conversationid + "-" + fid + "_unread";
+                        var ctid = conversationid + "-" + fid + ":unread";
                         (function(tname) {
                             console.log("tname:" + tname);
                             client.get(ctid, function(err, data) {
@@ -206,7 +222,6 @@ app.get('/get_all_conversations.json', function(req, res) {
                                 }
 
                                 console.log("goactive " + j + " ->>>" + activesArr[j] + ", conversationid = " + conversationid);
-
 
                                 unread.push(tn);
                                 tnames.push(tname);
@@ -231,25 +246,19 @@ app.get('/get_all_conversations.json', function(req, res) {
             })(i);
         }
     })
-
-
-
 });
-
-
 
 // API - 获取对话的所有消息
 app.get('/get_all_messages.json', function(req, res) {
     var conversationId = req.query.conversationId;
     var fid = req.query.fid;
 
-    var ctid = conversationId + "-" + fid + "_unread";
+    var ctid = conversationId + "-" + fid + ":unread";
 
     //设置未读消息数目清零
     client.get(ctid, function(err, data) {
         client.set(ctid, 0);
     });
-
 
     client.llen(conversationId, function(err, reply) {
         if (err) throw err;
@@ -287,7 +296,7 @@ app.get('/get_messages.json', function(req, res) {
     var pagenum = Number(req.query.pagenum);
     var pagesize = Number(req.query.pagesize);
 
-    var ctid = conversationId + "-" + fid + "_unread";
+    var ctid = conversationId + "-" + fid + ":unread";
 
     client.llen(conversationId, function(err, reply) {
         if (err) throw err;
@@ -339,14 +348,27 @@ app.get('/get_messages.json', function(req, res) {
 //API 获取所有的用户
 app.get('/get_all_chatters.json', function(req, res) {
     var all_chatters = [];
-    myMember.find({}, function(err, members) {
-        console.log(members.length);
-        for (var i = 0; i < members.length; i++) {
-            all_chatters.push(members[i]);
-            client.set(members[i]._id, JSON.stringify(members[i]));
+
+    client.keys('*:m', function(err, keys) {
+        if (err) throw err;
+        var inserted = 0;
+        for (var i = 0, len = keys.length; i < len; i++) {
+            client.get(keys[i], function(err, data) {
+                if (err) throw err;
+                console.log(data);
+                all_chatters.push(JSON.parse(data));
+
+                if (++inserted == len) {
+                    res.send(all_chatters);
+                }
+
+            });
+
+
         }
-        res.send(all_chatters);
-    })
+    });
+
+
 });
 
 // Socket Connection
@@ -381,7 +403,7 @@ io.on('connection', function(socket) {
         var tid = json.tid;
         var fid = json.fid;
         var conversationId = getConversationId(fid, tid);
-        var ctid = conversationId + "-" + tid + "_unread";
+        var ctid = conversationId + "-" + tid + ":unread";
 
         if (tid in userSockets) { //如果目标用户在线则直接通知未读消息数目
             client.get(ctid, function(err, data) {
