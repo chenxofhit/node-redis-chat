@@ -152,13 +152,13 @@ $(function() {
 
                 tid = $(this).find(".id")[0].innerHTML;
                 tname = $(this).find(".nickname")[0].innerHTML;
-                //var chatwith =  = response[item].nickname;
-                //tid = response[item]._id;
-                //tname = response[item].nickname;
 
                 conversationId = chat.getConversationId(fid, tid);
 
                 //update chat history ui
+                var chatImg = $(".chat-header").find("img")[0];
+                chatImg.setAttribute("src",$(this).find("img")[0].getAttribute('src'));
+
                 $(".chat-with").empty().append("Chat with " + chatwith);
                 $(".chat-num-messages").empty().append("no more messages");
                 $(".page-chat-history").empty();
@@ -278,7 +278,7 @@ $(function() {
                     var html = '';
                     for (var x = 0; x < people_count; x++) {
                         html += ("<li class=\'clearfix\'>");
-                        html += ("          <img src=\'" + " https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_01.jpg" + "\' alt=\'avatar\' />");
+                        html += ("          <img src=\'" + "http://dev.talkeer.com:8080/"+response.tavatars[x] + "\' alt=\'avatar\'  class=\'img-rounded\'/>");
                         html += ("          <div class=\'about\'>");
                         html += ("            <div class=\'nickname\'>") + response.tnames[x] + "</div>";
                         html += ("            <div class=\'id\' style=\"display:none\">") + response.tids[x] + "</div>";
@@ -306,7 +306,7 @@ $(function() {
                 var html = '';
                 for (var x = 0; x < people_count; x++) {
                     html += ("<li class=\'clearfix\'>");
-                    html += ("          <img src=\'" + " https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_01.jpg" + "\' alt=\'avatar\' />");
+                    html += ("          <img src=\'" + "http://dev.talkeer.com:8080/"+response[x].avatar + "\' alt=\'avatar\' class=\'img-rounded\' />");
                     html += ("          <div class=\'about\'>");
                     html += ("            <div class=\'nickname\'>") + response[x].nickname + "</div>";
                     html += ("            <div class=\'id\' style=\"display:none\">") + response[x]._id + "</div>";

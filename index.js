@@ -179,6 +179,7 @@ app.get('/get_all_conversations.json', function(req, res) {
         if (err) throw err;
         tids = [];
         tnames = [];
+        tavatars=[];
         t = [];
         unread = [];
 
@@ -187,6 +188,7 @@ app.get('/get_all_conversations.json', function(req, res) {
                 status: 'OK',
                 tids: tids,
                 tnames: tnames,
+                tavatars: tavatars,
                 t: t,
                 unread: unread
             });
@@ -208,38 +210,43 @@ app.get('/get_all_conversations.json', function(req, res) {
 
                         var json = JSON.parse(data);
                         var tname = json["nickname"];
+                        var avatar = json["avatar"];
 
 
                         var ctid = conversationid + "-" + fid + ":unread";
                         (function(tname) {
-                            console.log("tname:" + tname);
-                            client.get(ctid, function(err, data) {
-                                if (err) throw err;;
-                                if (data) {
-                                    tn = (Number(data));
-                                } else {
-                                    tn = 0;
-                                }
+                            (function(avatar) {
+                                console.log("tname:" + tname);
+                                client.get(ctid, function(err, data) {
+                                    if (err) throw err;;
+                                    if (data) {
+                                        tn = (Number(data));
+                                    } else {
+                                        tn = 0;
+                                    }
 
-                                console.log("goactive " + j + " ->>>" + activesArr[j] + ", conversationid = " + conversationid);
+                                    console.log("goactive " + j + " ->>>" + activesArr[j] + ", conversationid = " + conversationid);
 
-                                unread.push(tn);
-                                tnames.push(tname);
-                                tids.push(tid);
-                                t.push(activesArr[j][1]);
+                                    unread.push(tn);
+                                    tnames.push(tname);
+                                    tavatars.push(avatar);
+                                    tids.push(tid);
+                                    t.push(activesArr[j][1]);
 
-                                console.log(inserted);
+                                    console.log(inserted);
 
-                                if (++inserted == activesArr.length) {
-                                    res.send({
-                                        status: 'OK',
-                                        tids: tids,
-                                        tnames: tnames,
-                                        t: t,
-                                        unread: unread
-                                    });
-                                }
-                            })
+                                    if (++inserted == activesArr.length) {
+                                        res.send({
+                                            status: 'OK',
+                                            tids: tids,
+                                            tnames: tnames,
+                                            tavatars: tavatars,
+                                            t: t,
+                                            unread: unread
+                                        });
+                                    }
+                                })
+                            })(avatar);
                         })(tname);
                     }
                 })

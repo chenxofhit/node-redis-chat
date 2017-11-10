@@ -18,7 +18,7 @@ body {
     border-radius: 5px;
 }
 
-.page-header{
+.page-header {
     border-bottom-color: #d03f3f !important;
 }
 
@@ -55,6 +55,8 @@ body {
 
 .people-list img {
     float: left;
+    height: 60px;
+    width: 60px;
 }
 
 .people-list .about {
@@ -85,6 +87,8 @@ body {
 
 .chat .chat-header img {
     float: left;
+    height: 60px;
+    width: 60px;
 }
 
 .chat .chat-header .chat-about {
