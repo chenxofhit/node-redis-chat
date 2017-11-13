@@ -12,6 +12,10 @@ body {
     color: white;
 }
 
+.badge{
+    background-color:#cc3636 !important
+}
+
 .container {
     margin: 0 auto;
     background: #e9eaef;

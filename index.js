@@ -212,8 +212,8 @@ app.get('/get_all_conversations.json', function(req, res) {
                         var tname = json["nickname"];
                         var avatar = json["avatar"];
 
-
                         var ctid = conversationid + "-" + fid + ":unread";
+
                         (function(tname) {
                             (function(avatar) {
                                 console.log("tname:" + tname);
@@ -415,8 +415,13 @@ io.on('connection', function(socket) {
         if (tid in userSockets) { //如果目标用户在线则直接通知未读消息数目
             client.get(ctid, function(err, data) {
                 if (data) {
-                    userSockets[tid].emit('message-count', data);
-                    console.log("tid: " + tid + " is online, unknown messages with num =" + data + " notifed");
+                    var res = JSON.stringify(
+                    {
+                        fid:fid, //source
+                        unread: data //number
+                    })
+                    userSockets[tid].emit('message-count', res);
+                    console.log("tid: " + tid + " is online, unknown messages with num =" + res + " notifed");
                 }
             });
         } else { //如果目标用户不在线则走离线通知

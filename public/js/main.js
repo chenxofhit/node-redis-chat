@@ -30,12 +30,10 @@ $(function() {
 
     var chat = {
 
-
         init: function() {
             this.cacheDOM();
             this.bindEvents();
             this.getConversations();
-            //this.getContact();
         },
         cacheDOM: function() {
             this.$chatHistory = $('.chat-history');
@@ -286,7 +284,11 @@ $(function() {
                         html += ("              <i class=\'fa fa-circle online\'></i> online");
                         html += ("            </div>");
                         html += ("          </div>");
-                        html += ("        </li>");
+                        if(response.unread[x] > 0){
+                            html += ("<span class=\"badge\">"+ response.unread[x]+ "</span> </li>");
+                        }else{
+                            html += (" </li>");       
+                        }
                     }
 
                     $(".people-list .list").empty().append(html);
@@ -331,6 +333,14 @@ $(function() {
 
     chat.init();
 
+    //发送登录消息
     socket.emit('join', { uid: fid });
+
+    //收到新消息通知
+    socket.on('message-count', function(data) {
+        console.log(data);
+        toastr.info('你有新消息了！');
+        $('#chatAudio')[0].play();
+    });
 
 })
