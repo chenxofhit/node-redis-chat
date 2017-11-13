@@ -46,7 +46,7 @@ $(function() {
             this.$textarea.on('keyup', this.addMessageEnter.bind(this));
 
             //bind tab switch event
-            $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+            $('a[data-toggle="tab"]').on('click', function(e) {
                 var activeTab = $(e.target).text();
                 if (activeTab == "Recent") {
                     chat.getConversations();
@@ -57,6 +57,7 @@ $(function() {
                 }
             });
         },
+
 
         scrollToBottom: function() {
             this.$chatHistory.scrollTop(this.$chatHistory[0].scrollHeight);
@@ -160,6 +161,7 @@ $(function() {
                 $(".chat-with").empty().append("Chat with " + chatwith);
                 $(".chat-num-messages").empty().append("no more messages");
                 $(".page-chat-history").empty();
+                $('#message-to-send').focus();
 
                 pagenum = 1;
                 pagesize = 10;
