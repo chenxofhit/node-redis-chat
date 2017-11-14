@@ -8,6 +8,8 @@
         "body-parser": "^1.15.2",
         "bootstrap-vertical-tabs": "^1.2.2",
         "express": "^4.10.2",
+        "express-session": "latest",
+        "connect-redis": "latest",
         "lodash": "^4.17.4",
         "mongoose": "^4.11.7",
         "redis": "^2.8.0",

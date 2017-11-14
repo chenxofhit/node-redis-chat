@@ -1,15 +1,16 @@
 var express = require('express');
+var session = require("express-session");
+var RedisStore = require("connect-redis")(session);
 var bodyParser = require('body-parser');
 var app = express();
 var http = require('http').Server(app);
-var io = require('socket.io')(http);
+var sio = require('socket.io')(http);
 var assert = require('assert');
 var _ = require('lodash');
 var async = require("async");
 
 var Promise = require("bluebird");
 var redis = Promise.promisifyAll(require("redis"));
-
 
 var myMember = require("./mongoose").MyMember;
 var client = '';
@@ -40,7 +41,7 @@ require('fs').readFile('env.json', 'utf-8', function(err, data) {
     });
 });
 
-var port = process.env.PORT || 8080;
+var port = process.env.PORT || 3000;
 
 // Start the Server
 http.listen(port, function() {
@@ -54,6 +55,12 @@ var chatters = [];
 // Store messages in chatroom
 var chat_messages = [];
 
+var sessionMiddleware = session({
+    store: new RedisStore({ host: '127.0.0.1', port: 6379 }), // XXX redis server config
+    secret: "talkeer!@#!@#secretREDedfdFDASdkl",
+});
+
+app.use(sessionMiddleware);
 // Express Middleware
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({
@@ -179,7 +186,7 @@ app.get('/get_all_conversations.json', function(req, res) {
         if (err) throw err;
         tids = [];
         tnames = [];
-        tavatars=[];
+        tavatars = [];
         t = [];
         unread = [];
 
@@ -381,12 +388,16 @@ app.get('/get_all_chatters.json', function(req, res) {
 // Socket Connection
 // UI Stuff
 var users = {};
-
 var userSockets = {};
 
-io.on('connection', function(socket) {
+//https://stackoverflow.com/questions/25532692/how-to-share-sessions-with-socket-io-1-x-and-express-4-x
+sio.use(function(socket, next) {
+    sessionMiddleware(socket.request, socket.request.res, next);
+});
 
-    console.log('io connected.');
+sio.on('connection', function(socket) {
+
+    console.log('io connected with session = ' + socket.request.session);
 
     socket.on('join', function(data) {
         var uid = data.uid;
@@ -415,9 +426,8 @@ io.on('connection', function(socket) {
         if (tid in userSockets) { //如果目标用户在线则直接通知未读消息数目
             client.get(ctid, function(err, data) {
                 if (data) {
-                    var res = JSON.stringify(
-                    {
-                        fid:fid, //source
+                    var res = JSON.stringify({
+                        fid: fid, //source
                         unread: data //number
                     })
                     userSockets[tid].emit('message-count', res);
@@ -434,7 +444,7 @@ io.on('connection', function(socket) {
     // Fire 'count_chatters' for updating Chatter Count in UI
     socket.on('update_chatter_count', function(data) {
         console.log("Recieved data from cient ->>>: " + data);
-        io.emit('message', ' socket io is connected');
+        sio.emit('message', ' socket io is connected');
 
         //io.emit('count_chatters', data);
     });
